@@ -1,15 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
-auth_email="Changeme-admin@i.ua"
-auth_key="Changeme-look in right top on cloudflare settings"
-zone_name="Changeme-domain"
-record_name="Changeme-sudbomain"
+# CHANGE THESE
+auth_email=""
+auth_key="" # found in cloudflare account settings
+zone_name="<your domain>.com"
+record_name="wlan.<device name>.<your domain>.com"
 
 # MAYBE CHANGE THESE
-ip=$(curl -s http://ipv4.icanhazip.com)
-ip_file="ip.txt"
-id_file="cloudflare.ids"
-log_file="cloudflare.log"
+ip=$(ifdata -pa wlan0)
+ip_file="wlan-ip.txt"
+id_file="cloudflare-wlan.ids"
+log_file="cloudflare-wlan.log"
 
 # LOGGER
 log() {
@@ -39,28 +40,17 @@ else
     echo "$record_identifier" >> $id_file
 fi
 
+#echo https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier
 update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$ip\"}")
 
-case "$update" in
-  *"\"success\":false"*)
+if [[ $update == *"\"success\":false"* ]]; then
     message="API UPDATE FAILED. DUMPING RESULTS:\n$update"
     log "$message"
     echo -e "$message"
-    exit 1;;
-  *)
-      message="IP changed to: $ip"
+    exit 1 
+else
+    message="IP changed to: $ip"
     echo "$ip" > $ip_file
     log "$message"
-    echo "$message";;
-esac
-#if [[ $update == *"\"success\":false"* ]]; then
-#    message="API UPDATE FAILED. DUMPING RESULTS:\n$update"
-#    log "$message"
-#    echo -e "$message"
-#    exit 1 
-#else
-#    message="IP changed to: $ip"
-#    echo "$ip" > $ip_file
-#    log "$message"
-#    echo "$message"
-#fi
+    echo "$message"
+fi
