@@ -42,8 +42,9 @@ fi
 
 #echo https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier
 update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$ip\"}")
+exit_status=$?
 
-if [[ $update == *"\"success\":false"* ]]; then
+if [ $exit_status -ne 0 ] || [[ $update == *"\"success\":false"* ]]; then
     message="API UPDATE FAILED. DUMPING RESULTS:\n$update"
     log "$message"
     echo -e "$message"
