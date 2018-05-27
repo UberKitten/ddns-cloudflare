@@ -22,6 +22,11 @@ log() {
 # SCRIPT START
 log "Check Initiated"
 
+if [ $ip == "NON-IP" ]; then
+    log "No IP on interface"
+    ip="0.0.0.0"
+fi
+
 if [ -f $ip_file ]; then
     old_ip=$(cat $ip_file)
     if [ $ip == $old_ip ]; then
